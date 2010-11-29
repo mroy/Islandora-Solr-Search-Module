@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+ <search_terms>
+        <!--define what fields we can query as part of the advanced search for this collection-->
+        <default>title_t</default>
+	<number_of_results>1000</number_of_results>
+	 <term>
+            <field>title_t</field>
+            <value>Title</value>
+        </term>
+        <term>
+            <field>abstract_t</field>
+            <value>Description</value>
+        </term>
+        <term>
+            <field>subject_t</field>
+            <value>Subject - All</value>
+        </term>        
+        <term>
+	    <field>subject_topic_t</field>
+	    <value>Subject - Topic</value>
+	</term>
+        <term>
+            <field>subject_temporal_t</field>
+            <value>Subject - Date</value>
+        </term>
+        <term>
+	  <field>subject_geographic_t</field>
+	  <value>Subject - Geographic</value>
+	</term>
+	<term>
+            <field>subject_name_t</field>
+            <value>Subject - Name</value>
+        </term>
+	<term>
+            <field>name_personal_t</field>
+            <value>Name - Personal</value>
+        </term>
+	<term>
+            <field>name_organization_t</field>
+            <value>Name - Organization</value>
+        </term>
+	<term>
+            <field>name_conference_t</field>
+            <value>Name - Conference</value>
+        </term>        
+        <term>
+            <field>id</field>
+            <value>Handle Identifier</value>
+        </term>
+        <term>
+            <field>language_t</field>
+            <value>Language</value>
+        </term>
+        <term>
+            <field>access_condition_t</field>
+            <value>Rights</value>
+        </term>
+	<term>
+            <field>type_of_resource_t</field>
+            <value>Resource Format</value>
+        </term>
+	<term>
+            <field>physical_description_t</field>
+            <value>Mimetype</value>
+        </term>
+        <term>
+            <field>text</field>
+            <value>Full Text</value>
+        </term>
+    </search_terms>
+
+
+
+
+
+
+
+
+

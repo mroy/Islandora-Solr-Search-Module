@@ -1,0 +1,352 @@
+<?php
+/* 
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+  function islandora_solr_search_menu() {
+     $items = array();
+     $items['islandora/solr/search'] = array(
+       'page callback' => 'islandora_solr_search',
+       'access arguments' => array('view fedora collection'),//depends of fedora_repository view
+       'type' => MENU_CALLBACK,
+     );
+      // $items = array_merge($items,$irItems);
+      return $items;
+   }
+
+
+function islandora_solr_search_block($op = 'list', $delta = 0, $edit = array()) {
+  // The $op parameter determines what piece of information is being requested.
+  switch ($op) {
+    case 'list':
+      // If $op is "list", we just need to return a list of block descriptions.
+      // This is used to provide a list of possible blocks to the administrator,
+      // end users will not see these descriptions.
+
+     $blocks[0] = array(
+        'info' => t('Islandora Solr Search Block'),
+      );
+      $blocks[1] = array(
+        'info' => t('Islandora Solr Facet Block'),
+      );
+      $blocks[2] = array(
+        'info' => t('Islandora Solr Simple Search Block'),
+      );
+
+      return $blocks;
+    case 'configure':
+      // If $op is "configure", we need to provide the administrator with a
+      // configuration form. The $delta parameter tells us which block is being
+      // configured. In this example, we'll allow the administrator to customize
+      // the text of the first block.
+      $form = array();
+     switch ($delta) {
+      case 0:
+          $form['islandora_solr_search_block_repeat'] = array(
+            '#type' => 'textfield',
+            '#title' => t('Number of times to repeat search fields'),
+            '#size' => 5,
+            '#description' => t('The number of times you would like the search blocks to be repeated'),
+            '#default_value' => variable_get('islandora_solr_search_block_repeat', t('3')),
+          );
+          $form['islandora_solr_search_block_request_handler']=array(
+            '#type' => 'textfield',
+            '#title' => t('The name of the solr request handler to use for this search'),
+            '#size' => 25,
+            '#description' => t('The name of the solr request handler to use for this search.  This must be configured in your solr config file.  If this is not set we will use the default handler.'),
+            '#default_value' => variable_get('islandora_solr_search_block_request_handler', t('standard')),
+          );
+           $form['islandora_solr_search_block_facets']=array(
+            '#type' => 'textarea',
+            '#title' => t('The fields to use for facets'),
+           // '#size' => 75,
+            '#description' => t('a space separated list of fields to use as facets'),
+            '#default_value' => variable_get('islandora_solr_search_block_facets', t('dc.subject dc.type')),
+          );
+           $form['islandora_solr_search_block_host']=array(
+            '#type' => 'textfield',
+            '#title' => t('The domain name or ip of the solr server'),
+            '#size' => 25,
+            '#description' => t('The domain name or ip of the solr server.  Do not include http://.  The default is localhost.'),
+            '#default_value' => variable_get('islandora_solr_search_block_host', t('localhost')),
+          );
+           $form['islandora_solr_search_block_port']=array(
+            '#type' => 'textfield',
+            '#title' => t('The port that the solr server is listening on'),
+            '#size' => 25,
+            '#description' => t('The port that the solr server is listening on.  The default value is 8080'),
+            '#default_value' => variable_get('islandora_solr_search_block_port', t('8080')),
+          );
+           $form['islandora_solr_search_block_app_path']=array(
+            '#type' => 'textfield',
+            '#title' => t('The path to the solr webapp'),
+            '#size' => 25,
+            '#description' => t('The path to the solr webapp.  The default value is solr'),
+            '#default_value' => variable_get('islandora_solr_search_block_app_path', t('solr')),
+          );
+           $form['islandora_solr_search_block_handler_file']=array(
+            '#type' => 'textfield',
+            '#title' => t('The path to the php file that will be called to display solr search results'),
+            '#size' => 25,
+            '#description' => t('The path to the php file that will be called to display solr search results.  This file must have a function that can display the solr search results.  The default is plugins/SolrResults.inc '),
+            '#default_value' => variable_get('islandora_solr_search_block_handler_file', t('IslandoraSolrResults.inc')),
+          );
+            $form['islandora_solr_search_block_handler_class']=array(
+            '#type' => 'textfield',
+            '#title' => t('The class included in the file above.'),
+            '#size' => 25,
+            '#description' => t('The class included in the file above. The default value is SolrResults'),
+            '#default_value' => variable_get('islandora_solr_search_block_handler_class', t('IslandoraSolrResults')),
+          );
+           $form['islandora_solr_search_block_handler_function']=array(
+            '#type' => 'textfield',
+            '#title' => t('The function to call to display the search results.'),
+            '#size' => 25,
+            '#description' => t('The function to call to display the search results.  The default value is SearchAndDisplay'),
+            '#default_value' => variable_get('islandora_solr_search_block_handler_function', t('displayResults')),
+          );
+           $form['islandora_solr_search_block_facet_min_count']=array(
+            '#type' => 'textfield',
+            '#title' => t('This param indicates the minimum counts for facet fields should be included in the response.'),
+            '#size' => 25,
+            '#description' => t('This param indicates the minimum counts for facet fields should be included in the response. '),
+            '#default_value' => variable_get('islandora_solr_search_block_facet_min_count', '2'),
+          );
+           $form['islandora_solr_search_block_facet_limit']=array(
+            '#type' => 'textfield',
+            '#title' => t('This param indicates the maximum number of constraint counts that should be returned for the facet fields. A negative value means unlimited. '),
+            '#size' => 25,
+            '#description' => t('This param indicates the maximum number of constraint counts that should be returned for the facet fields. A negative value means unlimited. '),
+            '#default_value' => variable_get('islandora_solr_search_block_facet_limit', '10'),
+          );
+            $form['islandora_solr_search_num_of_results']=array(
+            '#type' => 'textfield',
+            '#title' => t('This param indicates the number of results to show per page.'),
+            '#size' => 25,
+            '#description' => t('This param indicates the number of results to show per page. '),
+            '#default_value' => variable_get('islandora_solr_search_block_facet_limit', '20'),
+          );
+          break;
+
+      }
+      return $form;
+    case 'save':
+      // If $op is "save", we need to save settings from the configuration form.
+      // Since the first block is the only one that allows configuration, we
+      // need to check $delta to make sure we only save it.
+      switch ($delta) {
+      case 0:
+          variable_set('islandora_solr_search_block_repeat', $edit['islandora_solr_search_block_repeat']);
+          variable_set('islandora_solr_search_block_request_handler', $edit['islandora_solr_search_block_request_handler']);
+          variable_set('islandora_solr_search_block_facets', $edit['islandora_solr_search_block_facets']);
+          variable_set('islandora_solr_search_block_host', $edit['islandora_solr_search_block_host']);
+          variable_set('islandora_solr_search_block_port', $edit['islandora_solr_search_block_port']);
+          variable_set('islandora_solr_search_block_app_path', $edit['islandora_solr_search_block_app_path']);
+          variable_set('islandora_solr_search_block_handler_file', $edit['islandora_solr_search_block_handler_file']);
+          variable_set('islandora_solr_search_block_handler_class', $edit['islandora_solr_search_block_handler_class']);
+          variable_set('islandora_solr_search_block_handler_function', $edit['islandora_solr_search_block_handler_function']);
+          variable_set('islandora_solr_search_block_facet_min_count', $edit['islandora_solr_search_block_facet_min_count']);
+          variable_set('islandora_solr_search_block_facet_limit', $edit['islandora_solr_search_block_facet_limit']);
+           variable_set('islandora_solr_search_num_of_results', $edit['islandora_solr_search_num_of_results']);
+          break;
+      }
+    case 'view': default:
+      // If $op is "view", then we need to generate the block for display
+      // purposes. The $delta parameter tells us which block is being requested.
+      switch ($delta) {
+        case 0:
+           $block['subject'] = t('Islandora Solr Search');
+          // The content of the block is typically generated by calling a custom
+          // function.
+          $block['content'] = drupal_get_form('islandora_solr_search_block_form');
+          break;
+         case 1:
+          // The subject is displayed at the top of the block. Note that it
+          // should be passed through t() for translation.
+          $block['subject'] = t('Islandora Facet Block');
+          // The content of the block is typically generated by calling a custom
+          // function.
+         require_once(drupal_get_path('module', 'islandora_solr_search') . '/IslandoraSolrResults.inc');
+         $solrResults = new IslandoraSolrResults();
+          $block['content'] = $solrResults->displayFacets();
+          break;
+        case 2:
+          $block['subject'] = t('Isandora Solr Simple Search');
+          $block['content'] = drupal_get_form('islandora_solr_simple_search_form');
+          break;
+      }
+      return $block;
+  }
+}
+
+function islandora_solr_search_theme() {
+  return array(
+    'islandora_solr_search_block_form' => array(
+      'arguments' => array (
+        'form' => NULL,
+      ),
+    ),
+  );
+}
+
+
+function islandora_solr_modify_search_form_submit($form,&$form_state) {
+  
+  module_load_include('php', 'islandora_solr_search', 'Solr/Service');
+
+  drupal_goto($_GET['q'],'limit='.urlencode($form_state['values']['per_page']).'&sort='.$form_state['values']['sort'].'%20'.$form_state['values']['direction'].'&page='.$form_state['values']['page']);
+
+}
+
+function islandora_solr_modify_search_form() 
+{ 
+    global $islandora_facets, $islandora_defType, $islandora_solrQuery, $base_url, $islandora_fq, $islandora_solr_page_number, $islandora_endPage, $islandora_limit;
+    
+    module_load_include('inc', 'fedora_repository', 'CollectionPolicy');
+    $collection = isset($_SESSION['fedora_collection'])?$_SESSION['fedora_collection']:variable_get('fedora_repository_pid', 'islandora:top');
+
+    $types=array();
+    if (($cp = CollectionPolicy::loadFromCollection($collection,FALSE))!==FALSE)
+    {
+      $terms = $cp->getSearchTerms(TRUE,TRUE);
+
+      foreach ($terms as $term)
+      {
+				 if ($term['field'] != 'abstract_t') {
+						$types[$term['field']]=$term['value'];
+				 } elseif ($term['field'] == 'title_t') { 
+						unset($types[$term['field']]); 
+					  $types['title_t_sort'] = $term['value'];
+				 }
+      }
+    }        
+    
+    
+    $form = array();
+    $form['#multistep'] = TRUE; // force the form to be rebuilt every page so that if the collection changes, so do the search terms.
+    
+    $form['fq'] = array('#type' => 'hidden', '#value'=> drupal_urlencode($islandora_fq));
+    $form['solrQuery'] = array('#type' => 'hidden', '#value'=> drupal_urlencode($islandora_solrQuery));
+    $form['defType'] = array('#type' => 'hidden', '#value'=> drupal_urlencode($islandora_defType));
+    
+		$sort=null; $direction='asc';
+		if (isset($_GET['sort']) && preg_match('/^(.*)\s+(asc|desc)\s*$/i',$_GET['sort'],$matches)) { 
+			$sort=$matches[1]; $direction=strtolower($matches[2]);
+		}    
+    
+    $form['sort'] = array(
+            '#title' => t('Sort by'),
+            '#type' => 'select',
+            '#options' => $types,
+						'#default_value' => $sort
+    );
+    
+    $form['direction'] = array(
+            '#title' => t('Direction'),
+            '#type' => 'select',
+            '#options' => array('asc'=>'Ascending','desc'=>'Descending'),
+						'#default_value'=> $direction, 
+    );
+    
+    
+    $limit =  variable_get('islandora_solr_search_num_of_results',20);
+    $perpage = array( $limit=>$limit, 2*$limit=>2*$limit, 5*$limit=>5*$limit, 10*$limit=>10*$limit);
+
+    $form['per_page'] = array(
+            '#title' => t('Results per page'),
+            '#type' => 'select',
+            '#options' => $perpage,
+            '#default_value' => $islandora_limit
+    );    
+    
+    $pages = array();
+    for ($i=1;$i<=$islandora_endPage;$i++)
+    {
+      $pages[$i]=$i;
+    }    
+    $form['page'] = array(
+            '#title' => t('Page'),
+            '#type' => 'select',
+            '#options' => $pages,
+            '#default_value' => $islandora_solr_page_number
+    );    
+    
+    $form['submit'] = array(
+            '#type' => 'submit',
+            '#value' => t('Modify')
+    );
+    
+    return $form;
+}
+
+function islandora_solr_simple_search_form() {
+  module_load_include('inc', 'islandora_solr_search', 'IslandoraSolrResults');
+  $searchClass = new IslandoraSolrResults();
+  return $searchClass->build_simple_solr_form(&$form_state);
+}
+
+function islandora_solr_simple_search_form_submit($form, &$form_state) {
+  
+  $searchString = $form_state['values']['search_query'];
+  //$searchString = drupal_urlencode($searchString);
+  $searchString = htmlspecialchars(drupal_urlencode($searchString),ENT_QUOTES,'utf-8',false);
+  $searchString = str_replace('/','~slsh~',$searchString);//replace the slash so url doesn't break
+  drupal_goto("islandora/solr/search/$searchString/1/-/dismax");
+}
+
+function islandora_solr_search_block_form() {
+  module_load_include('inc', 'islandora_solr_search', 'IslandoraSolrResults');
+  $searchClass = new IslandoraSolrResults();
+  return $searchClass->build_solr_search_form();
+}
+
+function theme_islandora_solr_search_block_form($form) {
+  module_load_include('inc', 'islandora_solr_search', 'IslandoraSolrResults');
+  $advanced_search_form = new IslandoraSolrResults();
+  return $advanced_search_form->theme_solr_search_form($form);
+
+}
+
+function islandora_solr_search($query, $startPage = 1, $fq=null, $dismax=null, $sort = null, $limit=null) {
+  module_load_include('inc', 'islandora_solr_search', 'IslandoraSolrResults');
+  if (isset($_GET['fq'])) {
+    $fq=urldecode(trim($_GET['fq']));
+  }
+  if (isset($_GET['page']) && intval(trim($_GET['page'])) != 0) { 
+    $startPage = intval(trim($_GET['page']));
+  }
+  if (isset($_GET['sort']) && trim($_GET['sort']) != '') {
+    
+    $sort= urldecode(trim($_GET['sort']));
+  }
+  
+  if (isset($_GET['limit']) && trim($_GET['limit']) != '') {
+    
+    $limit= urldecode(trim($_GET['limit']));
+  }
+    
+  $searchClass = new IslandoraSolrResults();
+  return $searchClass->searchAndDisplay($query, $startPage, $fq, $dismax, $sort, $limit);
+}
+
+function islandora_solr_search_block_form_submit($form, &$form_state) {
+  module_load_include('php', 'islandora_solr_search', 'Solr/Service');
+  $type_id = trim($form_state['values']['type']);
+  $repeat = variable_get('islandora_solr_search_block_repeat',  t('3'));
+  $searchString = trim($form_state['values']['type1']) . ':' . Apache_Solr_Service::escapePhrase(trim($form_state['values']['fedora_terms1']));
+  if ($form_state['values']['fedora_terms2']!='') {
+    $searchString .=' '. trim($form_state['values']['andor1']) . ' '. trim($form_state['values']['type2']) . ':'. Apache_Solr_Service::escapePhrase(trim($form_state['values']['fedora_terms2']));
+  }
+  if ($repeat > 2 && $repeat < 9) {
+    for ($i = 3; $i < $repeat + 1; $i++) {
+      $t = $i - 1;
+      if ($form_state['values']["fedora_terms$i"]!='') {
+        $searchString .= ' '. trim($form_state['values']["andor$t"]) . ' '. trim($form_state['values']["type$i"]) . ':'. Apache_Solr_Service::escapePhrase(trim($form_state['values']["fedora_terms$i"]));
+      }
+    }
+  }
+  $searchString = htmlspecialchars(drupal_urlencode($searchString), ENT_QUOTES, 'utf-8', false);
+  $searchString = str_replace('/','~slsh~',$searchString);//replace the slash so url doesn't break
+  drupal_goto("islandora/solr/search/$searchString/1");
+}
+
