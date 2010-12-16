@@ -3,8 +3,6 @@
 class UofMSearchResults
 {
 
- private $model_assigments = array( 'uofm:lowResImage' => 'Image', 'highResImage' => 'Image');
-
 
  function lookupMarcrelator($code) {
 
@@ -53,16 +51,36 @@ class UofMSearchResults
 
       $pid=htmlspecialchars(preg_replace('/\//',':',$doc->id),ENT_QUOTES,'utf-8');
       
-      $output .= '<tr><td><div class="thumbnail"><a href="'.$base_url.'/fedora/'.$pid.'/JPG" class="zoomIcon">&nbsp;</a><a href="'.$base_url.'/fedora/repository/'.$pid.'" class="lightbox" title="'.$doc->title_t.'"><img src="'.$base_url.'/fedora/'.$pid.'/TN"/></a></td>';
+      $output .= '<tr><td><div class="thumbnail">';
+			if (isset($doc->cmodel_t) && $doc->cmodel_t != 'uofm:prairieIslamicBuilding') {
+					$output.='<a href="'.$base_url.'/fedora/'.$pid.'/JPG" class="zoomIcon">&nbsp;</a><a href="'.$base_url.'/fedora/repository/'.$pid.'" class="lightbox" title="'.$doc->title_t.'"><img src="'.$base_url.'/fedora/'.$pid.'/TN"/></a></td>';
+			} else {
+				$output.='<a href="'.$base_url.'/fedora/repository/'.$pid.'" title="'.$doc->title_t.'"><img src="'.$base_url.'/fedora/'.$pid.'/TN"/></a></td>';
+			}
       $output .= '<td><div class="metadata"><a href="'.$base_url.'/fedora/repository/'.$pid.'">'.$doc->title_t.'</a><ul>';
+			if (isset($doc->cmodel_t) && $doc->cmodel_t == 'uofm:prairieIslamicBuilding') {
+				if (isset($doc->subject_building_type_t)) { 
+					$output.= '<li><b>Building Type:</b>&nbsp;'.$doc->subject_building_type_t.'</li>';
+				}
+        if (isset($doc->subject_building_style_t)) { 
+          $output.= '<li><b>Building Style:</b>&nbsp;'.$doc->subject_building_style_t.'</li>';
+        }
+        if (isset($doc->subject_building_usage_t)) {
+          $output.= '<li><b>Building Usage:</b>&nbsp;'.$doc->subject_building_usage_t.'</li>';
+        }
+				if (isset($doc->subject_geographic_t))  {
+					$output.='<li><b>Location:</b>&nbsp;'.$doc->subject_geographic_t.'</li>';
+				}
+			} 
+
       if (isset($doc->subject_temporal_t))
       {
-	$output.='<li><b>Date:</b>&nbsp;'.$doc->subject_temporal_t.'</li>';
+					$output.='<li><b>Date:</b>&nbsp;'.$doc->subject_temporal_t.'</li>';
       }
 
       if (isset($doc->type_of_resource_t))
       {
-	$output.='<li><b>Format:</b>&nbsp;'.$doc->type_of_resource_t.'</li>';
+					$output.='<li><b>Format:</b>&nbsp;'.$doc->type_of_resource_t.'</li>';
       }      
       
       if (isset($doc->name_personal_t))

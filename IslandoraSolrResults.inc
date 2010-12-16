@@ -18,6 +18,9 @@ class IslandoraSolrResults {
    'subject_name_facet' => 'Subject - Name',
    'subject_temporal_facet' => 'Subject -Temporal',
    'name_organization_facet' => 'Organization',
+	 'subject_building_type_facet' => 'Building Type',
+	 'subject_building_usage_facet' => 'Building Usage',
+	 'subject_building_style_facet' => 'Building Style'
  );
  
   function IslandoraSolrResults() {
@@ -29,7 +32,7 @@ class IslandoraSolrResults {
     return $query;
   }
 //default implementation for solr search.  You can configure others in the block config settings
-  function searchAndDisplay($query,$startPage=1,$fq=null,$dismax=null, $sort = null, $limit = null) {
+  function searchAndDisplay($query,$startPage=1,$fq=null,$dismax=null, $sort = null, $limit = null, $saveSearch = TRUE) {
     
     
      if ($dismax != null) // store the search query if its a simple keyword search
@@ -61,12 +64,18 @@ class IslandoraSolrResults {
     $facetlimit = variable_get('islandora_solr_search_block_facet_limit','12');
     $facetMinCount = variable_get('islandora_solr_search_block_facet_min_count','2');
     $requestHandler = ($dismax!=null)?'dismax':variable_get("islandora_solr_search_block_request_handler",t("standard"));
+
+		$facets = explode(',',variable_get("islandora_solr_search_block_facets",'dc.subject,dc.type'));
+		if (isset($_SESSION['fedora_collection']) && $_SESSION['fedora_collection'] == 'uofm:prairieIslamic') { 
+			$facets = array('subject_building_type_facet','subject_building_usage_facet','subject_building_style_facet');
+		}
+
     $additionalParams = array(
             'facet' => 'true',
             'facet.mincount' => $facetMinCount,
             'facet.limit' => $facetlimit,
             'qt' => $requestHandler,
-            'facet.field' => explode(',',variable_get("islandora_solr_search_block_facets",'dc.subject,dc.type')),//comma separated list configured in the block config
+            'facet.field' => $facets,//comma separated list configured in the block config
     );
     if ($sort != null) 
     {
@@ -100,13 +109,15 @@ class IslandoraSolrResults {
       $additionalParams['defType'] =$dismax;
     }
 
-    $_SESSION['islandora_solr_page_number'] = $islandora_solr_page_number;
-    $_SESSION['islandora_solr_limit'] = $islandora_limit;
-    $_SESSION['islandora_solr_query'] = $islandora_solrQuery;
-    $_SESSION['islandora_solr_page_number'] = $islandora_solr_page_number;
-		$_SESSION['islandora_solr_fq'] = $islandora_fq;
-		$_SESSION['islandora_solr_defType'] = $islandora_defType;  
- 
+		if ($saveSearch) {
+	    $_SESSION['islandora_solr_page_number'] = $islandora_solr_page_number;
+  	  $_SESSION['islandora_solr_limit'] = $islandora_limit;
+    	$_SESSION['islandora_solr_query'] = $islandora_solrQuery;
+	    $_SESSION['islandora_solr_page_number'] = $islandora_solr_page_number;
+			$_SESSION['islandora_solr_fq'] = $islandora_fq;
+			$_SESSION['islandora_solr_defType'] = $islandora_defType;  
+ 		}
+
     $recordStart = $startPage -1;
     $recordStart = max(0,$recordStart);//don't want a negative number
     $recordStart = $recordStart * $limit;
@@ -243,12 +254,12 @@ class IslandoraSolrResults {
     
     $output = drupal_get_form('islandora_solr_modify_search_form');
     
-    
     $output .= '<div class = "facet-list">';
     $output .='<ul>';
     if(empty($islandora_facets)) {
       return ''; //no facets to show
     }
+
     foreach($islandora_facets as $key => $field) {
       $test = get_object_vars($field);//get the number of fields if there aren't any don't show the key
       if (count($test)>0) {
